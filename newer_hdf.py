@@ -103,12 +103,13 @@ def filter_channels_historic(in_dict,stdev_cutoff):
     global_max = {}
     for key_file in in_dict:
         for key_channel in in_dict[key_file]:
-            if key_channel in global_min:
-                global_min[key_channel].append(in_dict[key_file][key_channel]['min'])
-                global_max[key_channel].append(in_dict[key_file][key_channel]['max'])
-            else:
-                global_min[key_channel] = in_dict[key_file][key_channel]['min']
-                global_max[key_channel] = in_dict[key_file][key_channel]['max']
+            if key_channel not in global_min:
+                global_min[key_channel] = []
+                global_max[key_channel] = []
+
+            global_min[key_channel].append(in_dict[key_file][key_channel]['min'])
+            global_max[key_channel].append(in_dict[key_file][key_channel]['max'])
+
     #process global_min
     global_min_upper = {}
     global_min_lower = {}
@@ -116,19 +117,21 @@ def filter_channels_historic(in_dict,stdev_cutoff):
     global_max_lower = {}
     for key in global_min:
         
-        global_min_mean = np.average(np.array(list(global_min.items()),dtype=np.float))
-        global_min_stdev = np.std(np.array(list(global_min.items()),dtype=np.float))
+        global_min_mean = np.average(np.array(list(global_min.values()),dtype=np.float))
+        global_min_stdev = np.std(np.array(list(global_min.values()),dtype=np.float))
         global_min_upper[key] = global_min_mean + (global_min_stdev * stdev_cutoff)
         global_min_lower[key] = global_min_mean - (global_min_stdev * stdev_cutoff)
     
         #process global_max
-        global_max_mean = np.average(np.array(list(global_max.items()),dtype=np.float))
-        global_max_stdev = np.std(np.array(list(global_max.items()),dytype=np.float))
+        global_max_mean = np.average(np.array(list(global_max.values()),dtype=np.float))
+        global_max_stdev = np.std(np.array(list(global_max.values()),dtype=np.float))
         global_max_upper[key] = global_max_mean + (global_max_stdev * stdev_cutoff)
         global_max_lower[key] = global_max_mean - (global_max_stdev * stdev_cutoff)
     
     for key_file in in_dict:
         for key_channel in in_dict[key_file]:
+            print(in_dict[key_file][key_channel]['min'])
+            print(global_min_upper[key_channel])
             if in_dict[key_file][key_channel]['min'] > global_min_upper[key_channel]:
                 del in_dict[key_file][key_channel]
             elif in_dict[key_file][key_channel]['min'] < global_min_lower[key_channel]:
@@ -143,7 +146,7 @@ def filter_channels_historic(in_dict,stdev_cutoff):
 
 
 
-
+counter = 0
 #initialize a dictionary of summary stats
 summary_stats = {}
 #script to get the average, min, and max of each file's channels into a single dictionary 
@@ -156,8 +159,8 @@ for file in directory:
         print(file)
         #add file to dictionary
         summary_stats[file]= {}
-
         for dataset in chanIDs:
+            counter += 1
             print(dataset)
             #initialize array of data points from a channel
             dset = chanIDs[dataset]['MEASURED']
@@ -174,10 +177,10 @@ for file in directory:
             #add min and max of filtered data to summary_stats
             summary_stats[file][dataset]['min'] = get_channel_min(cleaned)    
             summary_stats[file][dataset]['max'] = get_channel_max(cleaned)
-         
+            if counter == 2:
+                break
         f.close()
-
-print (summary_stats)
+        
 
 
 print(filter_channels_historic(summary_stats,2))
