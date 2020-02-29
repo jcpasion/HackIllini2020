@@ -12,7 +12,7 @@ def get_bin_sizes(dset,num_bins,percent_threshold):
     for entry in dset:
         entry_bin = int((entry - bin_dist[1][0]) / bin_offset)
         if entry_bin in cull_between:
-            good_dset.append(None)
+            good_dset.append(nan)
         else:
             good_dset.append(entry)
     return good_dset
