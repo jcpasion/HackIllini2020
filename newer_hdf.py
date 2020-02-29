@@ -50,33 +50,59 @@ def total_channel(file):
     chanIDs = f['DYNAMIC DATA'] 
     return (len(chanIDs))
 
-
-
     
-def get_channel_average(dset):
+def get_channel_average(dataset):
     #get average measurement of a channel
     #input: channel column dataset
     #output: average of the column
-
-    channel = chanIDs[dset]['MEASURED']
     measured = dset[0:len(dset)]
-    
     return (np.average(measured))
 
+def get_channel_min(dataset):
+    #get min of channel
+    #input: channel column dataset
+    #output: min of column
+    measured = dset[0:len(dset)]
+    return (np.min(measured))
 
-x = total_channel('COOLCAT_20110830_114419_85_20110830_114419_852.hdf')   
-print (x)
+def get_channel_max(dataset):
+    #get max of channel
+    #input:channel column dataset
+    #output: max of column
+    measured = dset[0:len(dset)]
+    return (np.max(measured))
 
-sample_rates = []
-data_points = []
 total_channels = []
+
+summary_stats = {}
+#script to get the average, min, and max of each file's channels into a single dictionary 
 for file in directory:
     if file.endswith('.hdf'):
+        print(file)
+
         f = h5py.File(file,'r')
         chanIDs = f['DYNAMIC DATA']
+
+        summary_stats[file]= {}
+
+        for dataset in chanIDs:
+            print (dataset)
+            dset = chanIDs[dataset]['MEASURED']
+            
+            summary_stats[file][dataset]={}
+            summary_stats[file][dataset]['average'] = {}
+            summary_stats[file][dataset]['min'] = {}
+            summary_stats[file][dataset]['max'] = {}
+
+            summary_stats[file][dataset]['average'] = get_channel_average(dset)
+            summary_stats[file][dataset]['min'] = get_channel_min(dset)    
+            summary_stats[file][dataset]['max'] = get_channel_max(dset)
          
-        for channel in chanIDs:
-            print(get_channel_average(channel))
+
+
+print (summary_stats)
+         
+
 
     
 #         total_channels.append((total_channel(file)))
@@ -170,6 +196,7 @@ print (ch_86_attr['SAMPLE RATE'])
 f_attr= f.attrs
 print (list(f_attr.keys()))
 '''
+
 
 
 
