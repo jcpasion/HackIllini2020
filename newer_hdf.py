@@ -56,47 +56,80 @@ def get_channel_average(dataset):
     #input: channel column dataset
     #output: average of the column
     measured = dset[0:len(dset)]
-    return (np.average(measured))
+    cleanedList = [x for x in measured if str(measured) != None]
+    return (np.average(cleanedList))
 
 def get_channel_min(dataset):
     #get min of channel
     #input: channel column dataset
     #output: min of column
     measured = dset[0:len(dset)]
-    return (np.min(measured))
+    cleanedList = [x for x in measured if str(measured) != None]  
+
+    return (np.min(cleanedList))
 
 def get_channel_max(dataset):
     #get max of channel
     #input:channel column dataset
     #output: max of column
     measured = dset[0:len(dset)]
-    return (np.max(measured))
+    cleanedList = [x for x in measured if str(measured) != None]
+    return (np.max(cleanedList))
 
-total_channels = []
+def get_bin_sizes(dset,num_bins,percent_threshold):
+    #uses bins to remove datapoints in a channel that are in underrepresented bins
+    #input: dset as an array of integers, number of bins, threshold
+    #output: array of integers where datapoints in underrepresented bins are replaced by 'None"
+    bin_dist = np.histogram(dset,num_bins)
+    bin_sizes = bin_dist[0]
+    bin_offset = (bin_dist[1][-1] - bin_dist[1][0]) / (num_bins - 1)
+    num_threshold  = len(dset) * percent_threshold
+    cull_between = {}
+    good_dset = []
+    #add bins to cull
+    for i in range(len(bin_sizes)):
+        if bin_sizes[i] < num_threshold:
+            cull_between[i] = 1
+    for entry in dset:
+        entry_bin = int((entry - bin_dist[1][0]) / bin_offset)
+        if entry_bin in cull_between:
+            good_dset.append(None)
+        else:
+            good_dset.append(entry)
+    return good_dset
 
+
+
+#initialize a dictionary of summary stats
 summary_stats = {}
 #script to get the average, min, and max of each file's channels into a single dictionary 
 for file in directory:
     if file.endswith('.hdf'):
-        print(file)
 
+        #import file, get list of channels within file
         f = h5py.File(file,'r')
         chanIDs = f['DYNAMIC DATA']
-
+        
+        #add file to dictionary
         summary_stats[file]= {}
 
         for dataset in chanIDs:
-            print (dataset)
+            #initialize array of data points from a channel
             dset = chanIDs[dataset]['MEASURED']
             
+            #create Dictionary Keys for average, min, max
             summary_stats[file][dataset]={}
             summary_stats[file][dataset]['average'] = {}
             summary_stats[file][dataset]['min'] = {}
             summary_stats[file][dataset]['max'] = {}
-
-            summary_stats[file][dataset]['average'] = get_channel_average(dset)
-            summary_stats[file][dataset]['min'] = get_channel_min(dset)    
-            summary_stats[file][dataset]['max'] = get_channel_max(dset)
+    
+            #clean array to get rid of underrepresented data points according to bins
+            cleaned = get_bin_sizes(dset,4,0.05)
+                       
+            #add average, min and max of filtered data to summary_stats
+            summary_stats[file][dataset]['average'] = get_channel_average(cleaned)
+            summary_stats[file][dataset]['min'] = get_channel_min(cleaned)    
+            summary_stats[file][dataset]['max'] = get_channel_max(cleaned)
          
 
 
@@ -196,7 +229,4 @@ print (ch_86_attr['SAMPLE RATE'])
 f_attr= f.attrs
 print (list(f_attr.keys()))
 '''
-
-
-
 
