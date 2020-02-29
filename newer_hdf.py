@@ -55,26 +55,22 @@ def get_channel_average(dataset):
     #get average measurement of a channel
     #input: channel column dataset
     #output: average of the column
-    measured = dset[0:len(dset)]
-    cleanedList = [x for x in measured if str(measured) != None]
-    return (np.average(cleanedList))
+    measured = dataset[0:len(dataset)]
+    cleanedList = [x for x in measured if str(dataset[0:len(dataset)]) != np.nan]
+    return (np.nanmean(cleanedList))
 
 def get_channel_min(dataset):
     #get min of channel
     #input: channel column dataset
     #output: min of column
-    measured = dset[0:len(dset)]
-    cleanedList = [x for x in measured if str(measured) != None]  
-
-    return (np.min(cleanedList))
+    return (np.min(dataset[0:len(dataset)]))
 
 def get_channel_max(dataset):
     #get max of channel
     #input:channel column dataset
     #output: max of column
-    measured = dset[0:len(dset)]
-    cleanedList = [x for x in measured if str(measured) != None]
-    return (np.max(cleanedList))
+   # measured = dataset[0:len(dataset)]
+    return (np.max(dataset[0:len(dataset)]))
 
 def get_bin_sizes(dset,num_bins,percent_threshold):
     #uses bins to remove datapoints in a channel that are in underrepresented bins
@@ -93,7 +89,7 @@ def get_bin_sizes(dset,num_bins,percent_threshold):
     for entry in dset:
         entry_bin = int((entry - bin_dist[1][0]) / bin_offset)
         if entry_bin in cull_between:
-            good_dset.append(None)
+            good_dset.append(np.nan)
         else:
             good_dset.append(entry)
     return good_dset
@@ -109,11 +105,12 @@ for file in directory:
         #import file, get list of channels within file
         f = h5py.File(file,'r')
         chanIDs = f['DYNAMIC DATA']
-        
+        print(file)
         #add file to dictionary
         summary_stats[file]= {}
 
         for dataset in chanIDs:
+            print(dataset)
             #initialize array of data points from a channel
             dset = chanIDs[dataset]['MEASURED']
             
@@ -122,12 +119,12 @@ for file in directory:
             summary_stats[file][dataset]['average'] = {}
             summary_stats[file][dataset]['min'] = {}
             summary_stats[file][dataset]['max'] = {}
-    
+
+            print ("dictionaries initialized") 
             #clean array to get rid of underrepresented data points according to bins
             cleaned = get_bin_sizes(dset,4,0.05)
-                       
-            #add average, min and max of filtered data to summary_stats
-            summary_stats[file][dataset]['average'] = get_channel_average(cleaned)
+            
+            #add min and max of filtered data to summary_stats
             summary_stats[file][dataset]['min'] = get_channel_min(cleaned)    
             summary_stats[file][dataset]['max'] = get_channel_max(cleaned)
          
@@ -229,4 +226,3 @@ print (ch_86_attr['SAMPLE RATE'])
 f_attr= f.attrs
 print (list(f_attr.keys()))
 '''
-
