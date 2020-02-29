@@ -4,6 +4,7 @@ import os
 import h5py
 import numpy as np
 import statistics
+import pickle
 
 directory = os.listdir()
 
@@ -56,7 +57,7 @@ def get_channel_average(dataset):
     #input: channel column dataset
     #output: average of the column
     measured = dataset[0:len(dataset)]
-    cleanedList = [x for x in measured if str(dataset[0:len(dataset)]) != np.nan]
+    cleanedList = [x for x in measured if str(measured) != np.nan]
     return (np.nanmean(cleanedList))
 
 def get_channel_min(dataset):
@@ -69,31 +70,32 @@ def get_channel_max(dataset):
     #get max of channel
     #input:channel column dataset
     #output: max of column
-   # measured = dataset[0:len(dataset)]
     return (np.max(dataset[0:len(dataset)]))
 
 def get_bin_sizes(dset,num_bins,percent_threshold):
     #uses bins to remove datapoints in a channel that are in underrepresented bins
     #input: dset as an array of integers, number of bins, threshold
-    #output: array of integers where datapoints in underrepresented bins are replaced by 'None"
+    #output: array of integers where datapoints in underrepresented bins are replaced by np.nan
     bin_dist = np.histogram(dset,num_bins)
     bin_sizes = bin_dist[0]
-    bin_offset = (bin_dist[1][-1] - bin_dist[1][0]) / (num_bins - 1)
-    num_threshold  = len(dset) * percent_threshold
-    cull_between = {}
-    good_dset = []
-    #add bins to cull
-    for i in range(len(bin_sizes)):
-        if bin_sizes[i] < num_threshold:
-            cull_between[i] = 1
-    for entry in dset:
-        entry_bin = int((entry - bin_dist[1][0]) / bin_offset)
-        if entry_bin in cull_between:
-            good_dset.append(np.nan)
-        else:
-            good_dset.append(entry)
-    return good_dset
-
+    if (bin_dist[1][-1] - bin_dist[1][0]) > 0:
+        bin_offset = (bin_dist[1][-1] - bin_dist[1][0]) / (num_bins - 1)
+        num_threshold  = len(dset) * percent_threshold
+        cull_between = {}
+        good_dset = []
+        #add bins to cull
+        for i in range(len(bin_sizes)):
+            if bin_sizes[i] < num_threshold:
+                cull_between[i] = 1
+        for entry in dset:
+            entry_bin = int((entry - bin_dist[1][0]) / bin_offset)
+            if entry_bin in cull_between:
+                good_dset.append(np.nan)
+            else:
+                good_dset.append(entry)
+        return good_dset
+    else:
+        return dset
 
 
 #initialize a dictionary of summary stats
@@ -128,10 +130,13 @@ for file in directory:
             summary_stats[file][dataset]['min'] = get_channel_min(cleaned)    
             summary_stats[file][dataset]['max'] = get_channel_max(cleaned)
          
-
+        f.close()
 
 print (summary_stats)
-         
+
+output = open('summary.pkl', 'wb')
+pickle.dump(summary_stats, output)
+output.close()         
 
 
     
@@ -177,6 +182,55 @@ for dataset in sorted(chanIDs):
 #print ((all_std))
 
 #print (len(set(all_std)))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
+#get metadata for chanIDs
+chan_attr = chanIDs.attrs
+print (list(chan_attr.keys()))
+
+#get data and then metadata for single channel ch_86
+ch_86 = chanIDs['ch_86']
+print (list(ch_86.keys()))
+
+ch_86_attr = ch_86.attrs
+print (list(ch_86_attr.keys()))
+
+
+#the data within ch_86
+dset = ch_86['MEASURED']
+print (list((dset.attrs).keys()))
+
+#print sample rate
+print (ch_86_attr['SAMPLE RATE'])
+
+#metadata for whole file
+f_attr= f.attrs
+print (list(f_attr.keys()))
+'''
 
 
 
