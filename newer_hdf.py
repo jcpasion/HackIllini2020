@@ -162,7 +162,7 @@ for file in directory:
         #add file to dictionary
         summary_stats[file]= {}
 
-        for dataset in ten_channels:
+        for dataset in chanIDs:
             if dataset in ten_channels_dict:
                 print(dataset)
                 #initialize array of data points from a channel
