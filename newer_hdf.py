@@ -116,15 +116,14 @@ def filter_channels_historic(in_dict,stdev_cutoff):
     global_max_upper = {}
     global_max_lower = {}
     for key in global_min:
-        
-        global_min_mean = np.average(np.array(list(global_min.values()),dtype=np.float))
-        global_min_stdev = np.std(np.array(list(global_min.values()),dtype=np.float))
+        global_min_mean = np.average(np.array(list(global_min.values()),dtype=object))
+        global_min_stdev = np.std(np.array(list(global_min.values()),dtype=object))
         global_min_upper[key] = global_min_mean + (global_min_stdev * stdev_cutoff)
         global_min_lower[key] = global_min_mean - (global_min_stdev * stdev_cutoff)
     
         #process global_max
-        global_max_mean = np.average(np.array(list(global_max.values()),dtype=np.float))
-        global_max_stdev = np.std(np.array(list(global_max.values()),dtype=np.float))
+        global_max_mean = np.average(np.array(list(global_max.values()),dtype=object))
+        global_max_stdev = np.std(np.array(list(global_max.values()),dtype=object))
         global_max_upper[key] = global_max_mean + (global_max_stdev * stdev_cutoff)
         global_max_lower[key] = global_max_mean - (global_max_stdev * stdev_cutoff)
     
