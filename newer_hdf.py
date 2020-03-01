@@ -130,8 +130,6 @@ def filter_channels_historic(in_dict,stdev_cutoff):
     
     for key_file in in_dict:
         for key_channel in in_dict[key_file]:
-            print(in_dict[key_file][key_channel]['min'])
-            print(global_min_upper[key_channel])
             if in_dict[key_file][key_channel]['min'] > global_min_upper[key_channel]:
                 del in_dict[key_file][key_channel]
             elif in_dict[key_file][key_channel]['min'] < global_min_lower[key_channel]:
@@ -145,9 +143,12 @@ def filter_channels_historic(in_dict,stdev_cutoff):
 
 
 
-
 #initialize a dictionary of summary stats
 summary_stats = {}
+sample_rate_files = {}
+ten_channels=['ch_1','ch_10','ch_100','ch_101','ch_102','ch_106','ch_107','ch_109','ch_11','ch_110']
+
+
 #script to get the average, min, and max of each file's channels into a single dictionary 
 for file in directory:
     if file.endswith('.hdf'):
@@ -158,34 +159,43 @@ for file in directory:
         print(file)
         #add file to dictionary
         summary_stats[file]= {}
-        for dataset in chanIDs:
+
+        for dataset in ten_channels:
+            if chanIDs[dataset]['MEASURED'] == False:
+                continue
             print(dataset)
             #initialize array of data points from a channel
             dset = chanIDs[dataset]['MEASURED']
-            
+            sample_rate_files[file] = get_sample_rate(file)[0]
+ 
             #create Dictionary Keys for average, min, max
             summary_stats[file][dataset]={}
             summary_stats[file][dataset]['min'] = {}
             summary_stats[file][dataset]['max'] = {}
-
-            print ("dictionaries initialized") 
+ 
             #clean array to get rid of underrepresented data points according to bins
             cleaned = get_bin_sizes(dset,4,0.05)
             
             #add min and max of filtered data to summary_stats
             summary_stats[file][dataset]['min'] = get_channel_min(cleaned)    
+            print('min added')
             summary_stats[file][dataset]['max'] = get_channel_max(cleaned)
+            print('max added')
         f.close()
-        
+
+print (summary_stats)
+print(sample_rate_files)
+
+final_filter = filter_channels_historic(summary_stats,2)
 
 
-print(filter_channels_historic(summary_stats,2))
+summary = open('filtered_summary.pkl', 'wb')
+pickle.dump(final_filter, summary)
+summary.close()         
 
-
-output = open('summary.pkl', 'wb')
-pickle.dump(summary_stats, output)
-output.close()         
-
+sample_files = open('filtered_sample_rate.pkl', 'wb')
+pickle.dump(sample_rate_files, sample_files)
+sample_files.close()
 
     
 #         total_channels.append((total_channel(file)))
