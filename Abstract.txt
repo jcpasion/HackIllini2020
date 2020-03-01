@@ -1,0 +1,26 @@
+Caterpillar IoT Challenge
+Julius Pasion and Brent P Murphy
+
+In brief:
+
+Analysis of historical time-course data can be applied to active sensors to identify abnormalities in real time. Here, we implemented a two-tiered data filtration workflow to generate high quality training data for regression-based machine learning. First, a binning approach was utilized to remove outlier data from continuous sensor feeds. Second, the global distribution of range parameters were used to identify and remove abnormal feeds, producing the training dataset. 
+
+Plan:
+
+5 fold validation of simple linear regression models for each data feed, fit and precision measured. Model parameters are averaged between sensor feeds to construct a global model, and variance between feeds and this global sensor model used to construct confidence intervals. Operational anomalies will be identified as continuous sensor readings outside of these confidence intervals. 
+
+Purpose:
+
+Time-course sensor data is provided from a single machine for numerous unlabelled sensors over a long duration of time. The goal of this build is to (a) create a data filtering workflow for training set data over the sensor time-course (b) identify anomalies within the existing dataset through linear regression analysis and (c) identify runtime anomalies utilizing sensor specific linear models. 
+
+Data filtration:
+
+We implemented a two-step data filtration pipeline. First, bins are constructed across the range of values reported in the feed. Abnormal bins are defined as bins with a data point count below 5% of the total data-points, and are filtered. Second, the global distribution of range parameters (min and max) across sensor feeds is calculated. Sensor feeds which deviate by a threshold are filtered. We utilized a threshold of two standard deviations for this filtration step. For the sake of run-time, we subset the starting dataset to 10 random days, and two sensor channels where deviations in the data was observed: ‘ch_106’, and ‘ch_110’.
+
+Identifying operation abnormalities:
+
+Within the ‘Regression Machine Learning’ section, we created global regression models for each channel. We propose to utilize these models to identify abnormalities during machine operation. First, we can create two classifications of abnormalities: extreme values, where the confidence interval is exceeded by continuous measurements; in-range failures, where the parameter estimates of the current sensor stream deviates from the global model. 
+
+Virtual sensors for sensor minimization:
+
+Physical sensors represent an added cost. With the available datasets, the use of empirical virtual sensors can be examined. Initially, multiple linear regression of all other sensors will be utilized to predict a single sensor. Coefficients are then normalized across the range of data tested, and the minimum set of predictors which still meets a minimum precision threshold are identified. We would implement a R^2 threshold of 0.8 for maintained precision, though knowledge of the sensor may justify increased, or decreased, stringency. 
