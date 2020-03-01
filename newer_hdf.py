@@ -147,7 +147,9 @@ def filter_channels_historic(in_dict,stdev_cutoff):
 summary_stats = {}
 sample_rate_files = {}
 ten_channels=['ch_1','ch_10','ch_100','ch_101','ch_102','ch_106','ch_107','ch_109','ch_11','ch_110']
-
+ten_channels_dict = {}
+for i in ten_channels:
+    ten_channels_dict[i] = 1
 
 #script to get the average, min, and max of each file's channels into a single dictionary 
 for file in directory:
@@ -161,26 +163,25 @@ for file in directory:
         summary_stats[file]= {}
 
         for dataset in ten_channels:
-            if chanIDs[dataset]['MEASURED'] == False:
-                continue
-            print(dataset)
-            #initialize array of data points from a channel
-            dset = chanIDs[dataset]['MEASURED']
-            sample_rate_files[file] = get_sample_rate(file)[0]
- 
-            #create Dictionary Keys for average, min, max
-            summary_stats[file][dataset]={}
-            summary_stats[file][dataset]['min'] = {}
-            summary_stats[file][dataset]['max'] = {}
- 
-            #clean array to get rid of underrepresented data points according to bins
-            cleaned = get_bin_sizes(dset,4,0.05)
-            
-            #add min and max of filtered data to summary_stats
-            summary_stats[file][dataset]['min'] = get_channel_min(cleaned)    
-            print('min added')
-            summary_stats[file][dataset]['max'] = get_channel_max(cleaned)
-            print('max added')
+            if dataset in ten_channels_dict:
+                print(dataset)
+                #initialize array of data points from a channel
+                dset = chanIDs[dataset]['MEASURED']
+                sample_rate_files[file] = get_sample_rate(file)[0]
+     
+                #create Dictionary Keys for average, min, max
+                summary_stats[file][dataset]={}
+                summary_stats[file][dataset]['min'] = {}
+                summary_stats[file][dataset]['max'] = {}
+     
+                #clean array to get rid of underrepresented data points according to bins
+                cleaned = get_bin_sizes(dset,4,0.05)
+                
+                #add min and max of filtered data to summary_stats
+                summary_stats[file][dataset]['min'] = get_channel_min(cleaned)    
+                print('min added')
+                summary_stats[file][dataset]['max'] = get_channel_max(cleaned)
+                print('max added')
         f.close()
 
 print (summary_stats)
