@@ -6,8 +6,6 @@ import numpy as np
 import statistics
 import pickle
 
-directory = os.listdir()
-
 def get_sample_rate(file):
     #Get sample rate of a machine
     #input: hdf file
@@ -116,14 +114,15 @@ def filter_channels_historic(in_dict,stdev_cutoff):
     global_max_upper = {}
     global_max_lower = {}
     for key in global_min:
-        global_min_mean = np.average(np.array(list(global_min.values()),dtype=object))
-        global_min_stdev = np.std(np.array(list(global_min.values()),dtype=object))
+        
+        global_min_mean = np.average(np.array(list(global_min.values()),dtype=np.float))
+        global_min_stdev = np.std(np.array(list(global_min.values()),dtype=np.float))
         global_min_upper[key] = global_min_mean + (global_min_stdev * stdev_cutoff)
         global_min_lower[key] = global_min_mean - (global_min_stdev * stdev_cutoff)
     
         #process global_max
-        global_max_mean = np.average(np.array(list(global_max.values()),dtype=object))
-        global_max_stdev = np.std(np.array(list(global_max.values()),dtype=object))
+        global_max_mean = np.average(np.array(list(global_max.values()),dtype=np.float))
+        global_max_stdev = np.std(np.array(list(global_max.values()),dtype=np.float))
         global_max_upper[key] = global_max_mean + (global_max_stdev * stdev_cutoff)
         global_max_lower[key] = global_max_mean - (global_max_stdev * stdev_cutoff)
     
@@ -138,157 +137,5 @@ def filter_channels_historic(in_dict,stdev_cutoff):
             elif in_dict[key_file][key_channel]['max'] < global_max_lower[key_channel]:
                 del in_dict[key_file][key_channel]
     return in_dict
-
-
-
-
-#initialize a dictionary of summary stats
-summary_stats = {}
-sample_rate_files = {}
-two_channels=['ch_106','ch_110']
-two_channels_dict = {}
-for i in two_channels:
-    two_channels_dict[i] = 1
-
-#script to get the average, min, and max of each file's channels into a single dictionary 
-for file in directory:
-    if file.endswith('.hdf'):
-
-        #import file, get list of channels within file
-        f = h5py.File(file,'r')
-        chanIDs = f['DYNAMIC DATA']
-        print(file)
-        #add file to dictionary
-        summary_stats[file]= {}
-
-        for dataset in chanIDs:
-            if dataset in two_channels_dict:
-                print(dataset)
-                #initialize array of data points from a channel
-                dset = chanIDs[dataset]['MEASURED']
-                sample_rate_files[file] = get_sample_rate(file)[0]
-     
-                #create Dictionary Keys for average, min, max
-                summary_stats[file][dataset]={}
-                summary_stats[file][dataset]['min'] = {}
-                summary_stats[file][dataset]['max'] = {}
-     
-                #clean array to get rid of underrepresented data points according to bins
-                cleaned = get_bin_sizes(dset,4,0.05)
-                
-                #add min and max of filtered data to summary_stats
-                summary_stats[file][dataset]['min'] = get_channel_min(cleaned)    
-                print('min added')
-                summary_stats[file][dataset]['max'] = get_channel_max(cleaned)
-                print('max added')
-        f.close()
-
-print (summary_stats)
-print(sample_rate_files)
-
-final_filter = filter_channels_historic(summary_stats,2)
-
-
-summary = open('filtered_summary.pkl', 'wb')
-pickle.dump(final_filter, summary)
-summary.close()         
-
-sample_files = open('filtered_sample_rate.pkl', 'wb')
-pickle.dump(sample_rate_files, sample_files)
-sample_files.close()
-
-    
-#         total_channels.append((total_channel(file)))
-#        x = list(set(get_sample_rate(file)))
-#        sample_rates.append(x[0])
-
-#        y = list(set(total_data_points(file)))
-#        data_points.append(x[0])
-
-#print(sorted(total_channels))
-   
-#print (np.average(data_points))
-#print (np.std(data_points))
-
-
-
-
-#f = h5py.File('COOLCAT_20091227_194103_36_20091227_194103_360.hdf','r')
-#chanIDs = f['DYNAMIC DATA']
-
-
-
-
-'''
-for dataset in sorted(chanIDs):
-    print (dataset)
-    dset = chanIDs[dataset]['MEASURED']
-    measured = (dset[0:len(dset)])
-    print ('Average: {} '.format(np.average(measured)))
-    print ('Std.Dev: {} '.format(np.std(measured)))
-    print ('Min: {}'.format(np.min(measured)))
-    print ('Max: {}'.format(np.max(measured)))
-    print ('# of Data Points: {}'.format(len(measured)))
-    print ('# of Unique Data Points: {}'.format(len(set(measured))))
-'''
-#for dataset in sorted(chanIDs):
-    
-#    dataset= chanIDs[dataset]
-#    dataset_attrs = dataset.attrs
-#    print(dataset_attrs['SAMPLE RATE'])
-
-#print ((all_std))
-
-#print (len(set(all_std)))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-'''
-#get metadata for chanIDs
-chan_attr = chanIDs.attrs
-print (list(chan_attr.keys()))
-
-#get data and then metadata for single channel ch_86
-ch_86 = chanIDs['ch_86']
-print (list(ch_86.keys()))
-
-ch_86_attr = ch_86.attrs
-print (list(ch_86_attr.keys()))
-
-
-#the data within ch_86
-dset = ch_86['MEASURED']
-print (list((dset.attrs).keys()))
-
-#print sample rate
-print (ch_86_attr['SAMPLE RATE'])
-
-#metadata for whole file
-f_attr= f.attrs
-print (list(f_attr.keys()))
-'''
-
 
 
