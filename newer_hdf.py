@@ -146,10 +146,10 @@ def filter_channels_historic(in_dict,stdev_cutoff):
 #initialize a dictionary of summary stats
 summary_stats = {}
 sample_rate_files = {}
-ten_channels=['ch_1','ch_10','ch_100','ch_101','ch_102','ch_106','ch_107','ch_109','ch_11','ch_110']
-ten_channels_dict = {}
-for i in ten_channels:
-    ten_channels_dict[i] = 1
+two_channels=['ch_106','ch_110']
+two_channels_dict = {}
+for i in two_channels:
+    two_channels_dict[i] = 1
 
 #script to get the average, min, and max of each file's channels into a single dictionary 
 for file in directory:
@@ -163,7 +163,7 @@ for file in directory:
         summary_stats[file]= {}
 
         for dataset in chanIDs:
-            if dataset in ten_channels_dict:
+            if dataset in two_channels_dict:
                 print(dataset)
                 #initialize array of data points from a channel
                 dset = chanIDs[dataset]['MEASURED']
